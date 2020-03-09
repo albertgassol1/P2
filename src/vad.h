@@ -1,9 +1,14 @@
 #ifndef _VAD_H
 #define _VAD_H
 #include <stdio.h>
+#include "pav_analysis.h"
+
+float k0;
+int count_silence;
+int count_voice;
 
 /* TODO: add the needed states */
-typedef enum {ST_UNDEF=0, ST_SILENCE, ST_VOICE, ST_INIT} VAD_STATE;
+typedef enum {ST_UNDEF=0, ST_SILENCE, ST_VOICE, ST_INIT, ST_MAY_SILENCE, ST_MAY_VOICE} VAD_STATE;
 
 /* Return a string label associated to each state */
 const char *state2str(VAD_STATE st);

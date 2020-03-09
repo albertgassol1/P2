@@ -4,6 +4,8 @@
 
 #include "vad.h"
 
+
+const float threshold = 7;
 const float FRAME_TIME = 10.0F; /* in ms. */
 
 /* 
@@ -13,7 +15,7 @@ const float FRAME_TIME = 10.0F; /* in ms. */
  */
 
 const char *state_str[] = {
-  "UNDEF", "S", "V", "INIT"
+  "UNDEF", "S", "V", "INIT", "MS", "MV"
 };
 
 const char *state2str(VAD_STATE st) {
@@ -31,7 +33,7 @@ typedef struct {
  * TODO: Delete and use your own features!
  */
 
-Features compute_features(const float *x, int N) {
+Features compute_features(const float *x, int N, float fm) {
   /*
    * Input: x[i] : i=0 .... N-1 
    * Ouput: computed features
@@ -42,7 +44,9 @@ Features compute_features(const float *x, int N) {
    * For the moment, compute random value between 0 and 1 
    */
   Features feat;
-  feat.zcr = feat.p = feat.am = (float) rand()/RAND_MAX;
+  feat.p = compute_power(x, N);
+  feat.am = compute_am(x, N);
+  feat.zcr = compute_zcr(x, N, fm);
   return feat;
 }
 
@@ -55,6 +59,8 @@ VAD_DATA * vad_open(float rate) {
   vad_data->state = ST_INIT;
   vad_data->sampling_rate = rate;
   vad_data->frame_length = rate * FRAME_TIME * 1e-3;
+  count_silence = 0;
+  count_voice = 0;
   return vad_data;
 }
 
@@ -84,30 +90,79 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
    * program finite state automaton, define conditions, etc.
    */
 
-  Features f = compute_features(x, vad_data->frame_length);
+  Features f = compute_features(x, vad_data->frame_length, vad_data->sampling_rate);
   vad_data->last_feature = f.p; /* save feature, in case you want to show */
 
   switch (vad_data->state) {
+
   case ST_INIT:
+
     vad_data->state = ST_SILENCE;
+    k0 = f.p;
+
     break;
 
   case ST_SILENCE:
-    if (f.p > 0.95)
-      vad_data->state = ST_VOICE;
+
+    if (f.p > k0 + threshold)
+      vad_data->state = ST_MAY_VOICE;
+
     break;
 
   case ST_VOICE:
-    if (f.p < 0.01)
-      vad_data->state = ST_SILENCE;
+
+    if (f.p < k0 + threshold)
+      vad_data->state = ST_MAY_SILENCE;
+
+    break;
+
+  case ST_MAY_SILENCE:
+
+      if(f.p < k0 + threshold){
+        if(count_silence < 4){
+
+          count_silence += 1;
+        }else{
+          vad_data->state = ST_SILENCE;
+          count_silence = 0;
+        }  
+      
+      }else{
+
+          count_silence = 0;
+          vad_data->state = ST_VOICE;
+      }
+    break;
+
+  case ST_MAY_VOICE:
+
+    if(f.p > k0 + threshold){
+        if(count_voice < 4){
+
+          count_voice += 1;
+        }else{
+          vad_data->state = ST_VOICE;
+          count_voice = 0;
+        }  
+      
+      }else{
+
+          count_voice = 0;
+          vad_data->state = ST_SILENCE;
+      }
+
     break;
 
   case ST_UNDEF:
+
     break;
+
   }
 
   if (vad_data->state == ST_SILENCE ||
-      vad_data->state == ST_VOICE)
+      vad_data->state == ST_VOICE ||
+      vad_data->state == ST_MAY_SILENCE ||
+      vad_data->state == ST_MAY_VOICE)
     return vad_data->state;
   else
     return ST_UNDEF;
