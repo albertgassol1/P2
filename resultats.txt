@@ -7,3 +7,5 @@ cruces por cero letra 's' 2270
 cruces por cero letra 'c' 1016
 cruces por cero letra 't' 732
 91.839% amb nou
+
+92 i pico amb: alpha1 = 3, alpha2 = 1, fSilence = 3, fVoice = 7, zeros = 1780

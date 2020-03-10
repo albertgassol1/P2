@@ -10,7 +10,6 @@
 
 int main(int argc, char *argv[]) {
   int verbose = 0; /* To show internal state of vad: verbose = DEBUG_VAD; */
-
   SNDFILE *sndfile_in, *sndfile_out = 0;
   SF_INFO sf_info;
   FILE *vadfile;
@@ -63,8 +62,7 @@ int main(int argc, char *argv[]) {
       return -1;
     }
   }
-
-  vad_data = vad_open(sf_info.samplerate);
+  vad_data = vad_open(sf_info.samplerate, args.alpha1, args.alpha2, args.frame_silence, args.frame_voice, args.zeros);
   /* Allocate memory for buffers */
   frame_size   = vad_frame_size(vad_data);
   buffer       = (float *) malloc(frame_size * sizeof(float));

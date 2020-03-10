@@ -5,10 +5,10 @@
 #include "vad.h"
 
 
-const float alpha1 = 4;
-const float alpha2 = 3;
-const int frames_silence = 3; 
-const int frame_voice = 7;
+float alpha1 = 3;
+float alpha2 = 1;
+int frames_silence = 3; 
+int frames_voice = 7;
 int n_init;
 const float FRAME_TIME = 10.0F; /* in ms. */
 
@@ -58,7 +58,7 @@ Features compute_features(const float *x, int N, float fm) {
  * TODO: Init the values of vad_data
  */
 
-VAD_DATA * vad_open(float rate) {
+VAD_DATA *vad_open(float rate, char *_alpha1, char *_alpha2, char *_frame_silence, char *_frame_voice, char *_zeros) {
 
   VAD_DATA *vad_data = malloc(sizeof(VAD_DATA));
   vad_data->state = ST_INIT;
@@ -67,7 +67,11 @@ VAD_DATA * vad_open(float rate) {
   vad_data->count_silence = 0;
   vad_data->count_voice = 0;
   n_init = 0;
-  vad_data->zeros = 1800;
+  alpha1 = (float) strtod(_alpha1,NULL);
+  alpha2 = (float) strtod(_alpha2,NULL);
+  frames_silence =  atoi(_frame_silence);
+  frames_voice =  atoi(_frame_voice);
+  vad_data->zeros = (float) strtod(_zeros,NULL);
   return vad_data;
 }
 
@@ -195,7 +199,7 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
           
           vad_data->count_voice++;
           
-          if(vad_data->count_voice == frame_voice){
+          if(vad_data->count_voice == frames_voice){
             vad_data->count_voice = 0;
             vad_data->state = ST_VOICE;
           }
