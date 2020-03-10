@@ -20,6 +20,11 @@ typedef struct {
   VAD_STATE state;
   float sampling_rate;
   unsigned int frame_length;
+  float k1;
+  float k2;
+  float zeros;
+  float count_voice;
+  float count_silence;
   float last_feature; /* for debuggin purposes */
 } VAD_DATA;
 

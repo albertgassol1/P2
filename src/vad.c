@@ -5,7 +5,11 @@
 #include "vad.h"
 
 
-const float threshold = 7;
+const float alpha1 = 4;
+const float alpha2 = 3;
+const int frames_silence = 3; 
+const int frame_voice = 7;
+int n_init;
 const float FRAME_TIME = 10.0F; /* in ms. */
 
 /* 
@@ -55,12 +59,15 @@ Features compute_features(const float *x, int N, float fm) {
  */
 
 VAD_DATA * vad_open(float rate) {
+
   VAD_DATA *vad_data = malloc(sizeof(VAD_DATA));
   vad_data->state = ST_INIT;
   vad_data->sampling_rate = rate;
   vad_data->frame_length = rate * FRAME_TIME * 1e-3;
-  count_silence = 0;
-  count_voice = 0;
+  vad_data->count_silence = 0;
+  vad_data->count_voice = 0;
+  n_init = 0;
+  vad_data->zeros = 1800;
   return vad_data;
 }
 
@@ -96,28 +103,39 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
   switch (vad_data->state) {
 
   case ST_INIT:
+    
+    if (n_init < 10){
+        
+        k0 += pow(10, f.p/10);
+        n_init ++;
+        
+        if(n_init == 10){
 
-    vad_data->state = ST_SILENCE;
-    k0 = f.p;
+          k0 = 10*log10(k0/n_init);
+          vad_data->state = ST_SILENCE;
+          vad_data->k1 = k0 + alpha1;
+          vad_data->k2 = vad_data->k1 + alpha2;
+        }
+    }
 
     break;
 
   case ST_SILENCE:
 
-    if (f.p > k0 + threshold)
+    if (f.p > vad_data->k1)
       vad_data->state = ST_MAY_VOICE;
 
     break;
 
   case ST_VOICE:
 
-    if (f.p < k0 + threshold)
+    if (f.p < vad_data->k2)
       vad_data->state = ST_MAY_SILENCE;
 
     break;
 
   case ST_MAY_SILENCE:
-
+      /*
       if(f.p < k0 + threshold){
         if(count_silence < 4){
 
@@ -132,10 +150,26 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
           count_silence = 0;
           vad_data->state = ST_VOICE;
       }
+      */
+
+      if(f.p > vad_data->k1 || f.zcr > vad_data->zeros){
+        
+        vad_data->state = ST_VOICE;
+        vad_data->count_silence = 0;
+      
+      } else {
+          
+        vad_data->count_silence++;
+        if(vad_data->count_silence == frames_silence){
+
+          vad_data->state = ST_SILENCE;
+          vad_data->count_silence = 0;
+        }
+      }
     break;
 
   case ST_MAY_VOICE:
-
+  /*
     if(f.p > k0 + threshold){
         if(count_voice < 4){
 
@@ -149,6 +183,22 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
 
           count_voice = 0;
           vad_data->state = ST_SILENCE;
+      }
+      */
+
+     if(f.p < vad_data->k2 && f.zcr < vad_data->zeros){
+        
+        vad_data->state = ST_SILENCE;
+        vad_data->count_voice = 0;
+
+      } else {
+          
+          vad_data->count_voice++;
+          
+          if(vad_data->count_voice == frame_voice){
+            vad_data->count_voice = 0;
+            vad_data->state = ST_VOICE;
+          }
       }
 
     break;
