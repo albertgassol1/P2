@@ -129,6 +129,7 @@ int main(int argc, char *argv[]) {
     if(state == ST_MAY_SILENCE || state == ST_MAY_VOICE){
       n_maybe++;
     }
+
     if (verbose & DEBUG_VAD) vad_show_state(vad_data, stdout);
 
     /* TODO: print only SILENCE and VOICE labels */
@@ -157,7 +158,7 @@ int main(int argc, char *argv[]) {
         }
           
       }
-      
+      aux_state = last_state;
       last_state = state;
       
         
@@ -183,7 +184,7 @@ int main(int argc, char *argv[]) {
 
       }else if (state == ST_SILENCE && aux_state != ST_SILENCE)
       {
-        sf_seek(sndfile_out, -frame_size*(n_maybe +1), SEEK_CUR);
+        sf_seek(sndfile_out, -frame_size*(n_maybe + 1), SEEK_CUR);
         
         for(j = 0; j < n_maybe + 1 ; j++){
 
@@ -191,10 +192,13 @@ int main(int argc, char *argv[]) {
         }
 
         n_maybe = 0;
+      }else if (state == ST_VOICE && aux_state != ST_SILENCE){
+        
+        n_maybe = 0;
       }
       
     }
-    aux_state = state;
+    
 
   }
 
