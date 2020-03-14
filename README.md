@@ -100,7 +100,7 @@ Ejercicios
   potencia y la tasa de cruces por cero, junto con el etiquetado manual de los segmentos.
 
 <p align="center">
-  <img width="1000" height="300" src="plots.png">
+  <img width="900" height="200" src="plots.png">
 </p>
 
 En la imagen podemos ver la potencia en la primera grática, los cruces por cero en la segunda y la señal de voz en la tercera. La parte seleccionada es la letra `s` y, como podemos observar, la potencia no es muy alta pero los cruces por cero sí. 
