@@ -99,7 +99,7 @@ Ejercicios
   continuación, una captura de `wavesurfer` en la que se vea con claridad la señal temporal, el contorno de
   potencia y la tasa de cruces por cero, junto con el etiquetado manual de los segmentos.
 
-<img src="img/plots.png" width="640" align="center">
+<img src="plots.png" width="1280" align="center">
 
 En la imagen podemos ver la potencia en la primera grática, los cruces por cero en la segunda y la señal de voz en la tercera. La parte seleccionada es la letra `s` y, como podemos observar, la potencia no es muy alta pero los cruces por cero sí. 
 
@@ -345,8 +345,8 @@ codiguito
 - Inserte una gráfica en la que se vea con claridad la señal temporal, el etiquetado manual y la detección
   automática conseguida para el fichero grabado al efecto. 
 
-<img src="img/vadilab.png" width="640" align="center">
-<img src="img/diferencia.png" width="640" align="center">
+<img src="vadilab.png" width="640" align="center">
+<img src="diferencia.png" width="640" align="center">
 
 - Explique, si existen, las discrepancias entre el etiquetado manual y la detección automática.
 
@@ -356,7 +356,7 @@ Conideramos que la discrepancia es mínima pero, aún así, a veces falla a la h
   continuación las tasas de sensibilidad (*recall*) y precisión para el conjunto de la base de datos (sólo
   el resumen).
 
-<img src="img/summary.png" width="640" align="center">
+<img src="summary.png" width="640" align="center">
     
 Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
 
@@ -368,14 +368,14 @@ Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
   la que se vea con claridad la señal antes y después de la cancelación (puede que `wavesurfer` no sea la
   mejor opción para esto, ya que no es capaz de visualizar varias señales al mismo tiempo).
 
-<img src="img/ceros.png" width="640" align="center">
+<img src="ceros.png" width="640" align="center">
 
 #### Gestión de las opciones del programa usando `docopt_c`
 
 - Si ha usado `docopt_c` para realizar la gestión de las opciones y argumentos del programa `vad`, inserte
   una captura de pantalla en la que se vea el mensaje de ayuda del programa.
 
-<img src="img/help.png" width="640" align="center">
+<img src="help.png" width="640" align="center">
 
 ### Contribuciones adicionales y/o comentarios acerca de la práctica
 
