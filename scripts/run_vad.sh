@@ -20,13 +20,14 @@ for n in 1 2 3 4 5 6 7 8 9; do
                         fi
 
                         filevad=${filewav/.wav/.vad}
-                        $CMD -i $filewav -o $filevad -a $n -b $j -c $k -d $l -e $m || exit 1
+                        $CMD -i $filewav -o $filevad -a $n -b $j -c $k -d $l -e $m 
                     # Alternatively, uncomment to create output wave files
                     #    filewavOut=${filewav/.wav/.vad.wav}
                     #    $CMD $filewav $filevad $filewavOut || exit 1
                     done
                     echo "alpha1 = " $n " alpha2 = " $j " zeros = " $k " fSilence = " $l " fVoice = " $m 
-                    scripts/vad_evaluation.pl $DB/*/*lab
+                    echo "alpha1 = " $n " alpha2 = " $j " zeros = " $k " fSilence = " $l " fVoice = " $m  >> resultados.txt
+                    echo scripts/vad_evaluation.pl $DB/*/*lab >>resultados.txt
                 done
             done
         done
