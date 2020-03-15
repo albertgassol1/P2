@@ -22,7 +22,10 @@
 # S hypothesis => 100% correct ([0,1.5])
 # V hypothesis => 1.5 correct ([2.5, 4]) from 4.5 ([1.5, 6]): 33.33%
 
+
 use strict;
+my $filename1 = 'resultados.txt';
+open(my $fh, '>>', $filename1) or die "Could not open file '$filename1' $!";
 
 # Read lab files (used to read .lab and .vad)
 sub read_lab {
@@ -127,6 +130,7 @@ sub print_statistics {
 		#$SS, $SS + $SV, $recaS, $SS, $SS + $VS, $precS, $F_S;
 
     printf "===> %s: %.3f%%\n", $filename, ($F_V * $F_S) ** (1. / 2.);
+	printf $fh "===> %s: %.3f%%\n", $filename, ($F_V * $F_S) ** (1. / 2.);
     print "\n";
 }
 
@@ -152,7 +156,6 @@ sub acum_statistics{
 sub compare_labs {
     my $fileref = shift;
     my $filevad = shift;
-
     my %stat = ();
     my @ref = read_lab($fileref) or die "Error reading .lab file: $fileref\n"; 
     my @vad = read_lab($filevad) or die "Error reading .vad file: $filevad\n"; 
@@ -236,5 +239,7 @@ if (@ARGV > 1) {
     #print "**************** Summary ****************\n";
     print_statistics(\%acum_statistics, 'TOTAL');
 }
+close $fh;
+
 
 exit 0;

@@ -25,9 +25,10 @@ for n in 1 2 3 4 5 6 7 8 9; do
                     #    filewavOut=${filewav/.wav/.vad.wav}
                     #    $CMD $filewav $filevad $filewavOut || exit 1
                     done
-                    echo "alpha1 = " $n " alpha2 = " $j " zeros = " $k " fSilence = " $l " fVoice = " $m 
-                    echo "alpha1 = " $n " alpha2 = " $j " zeros = " $k " fSilence = " $l " fVoice = " $m  >> resultados.txt
-                    echo scripts/vad_evaluation.pl $DB/*/*lab >>resultados.txt
+                    echo "alpha1 = " $n " alpha2 = " $j " zeros = " $k " fSilence = " $l " fVoice = " $m
+                    echo "alpha1 = " $n " alpha2 = " $j " zeros = " $k " fSilence = " $l " fVoice = " $m >> resultados.txt 
+                    scripts/vad_evaluation.pl $DB/*/*lab 
+                    
                 done
             done
         done
