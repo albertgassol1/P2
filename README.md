@@ -134,9 +134,9 @@ Hemos etiquetado los tramos de voz y de silencio de manera que, si entre dos pal
 - Complete el código de los ficheros de la práctica para implementar un detector de actividad vocal tan
   exacto como sea posible. Tome como objetivo la maximización de la puntuación-F `TOTAL`.
 
-En esta parte solo introduciremos las partes del código más relevantes, ya que el contenido entero del código se puede encontrar en este mismo repositorio.
+En esta parte sólo introducimos las partes del código más relevantes, ya que el contenido entero del código se puede encontrar en este mismo repositorio.
 
-Fichero `vad.c`
+Fichero `vad.h`
 
 ```c
 
@@ -288,7 +288,7 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
 
 ```
 
-En los ficheros `vad.h` y `vad.c` hemos implementado la máquina de estados incluiendo los estados `*Maybe voice*` y `*Maybe silence*`. También hemos introducido una histéresis para decidir el cambio de los estados ya que nos ayuda a mejorar el sistema. Los parámetros que tenemos en cuenta para decidir si el segmento es de voz o silencio son: potencia, cruces por cero y duración de los segmentos de voz y silencio. Estos parametros los hemos añadido en el struct de `VAD_DATA`. Para calcular la potencia y los cruces por zero de los segmentos de voz, utilizamos las funciones implementadas en `pav_analysis.c`.
+En los ficheros `vad.h` y `vad.c` hemos implementado la máquina de estados incluiendo los estados *Maybe voice* y *Maybe silence*. También hemos introducido una histéresis para decidir el cambio de los estados, ya que nos ayuda a mejorar el sistema. Los parámetros que tenemos en cuenta para decidir si el segmento es de voz o silencio son: potencia, cruces por cero y duración de los segmentos de voz y silencio. Estos parametros los hemos añadido en el `struct VAD_DATA`. Para calcular la potencia y los cruces por zero de los segmentos de voz, utilizamos las funciones implementadas en `pav_analysis.c`.
 
 Fichero `main_vad.c`
 
@@ -345,7 +345,7 @@ Fichero `main_vad.c`
 
 ```
 
-En el fichero `main_vad.c` hemos implementado el etiquetado de los `*labels*`. Para poder hacer el etiquetado, nos ayudamos de las variables `*last_t*` y `*start_t*`. Finalmente, en el último frame decidimos que es de voz solo si el estado actual es `*ST_VOICE*`. Si no, decidimos que es silencio. 
+En el fichero `main_vad.c` hemos implementado el etiquetado de los *labels*. Para poder hacer el etiquetado, nos ayudamos de las variables *last_t* y *start_t*. Finalmente, en el último frame decidimos que es de voz solo si el estado actual es *ST_VOICE*, si no, decidimos que es silencio. 
 
 - Inserte una gráfica en la que se vea con claridad la señal temporal, el etiquetado manual y la detección
   automática conseguida para el fichero grabado al efecto. 
@@ -389,7 +389,7 @@ Consideramos que es un muy buen resultado, sobre todo en las tramas de voz. Para
   <img width="1100" src="img/senyals.png">
 </p>
 
-Para representar mejor las imagenes hemos desarrollado el script `graphics.py` que se encuentra en este mismo repositorio. Seguidamente se pueden ver los cambios mas significativos introducidos en el fichero `main_vad.c` para conseguir los resultados.
+Para representar mejor las imagenes hemos desarrollado el script `graphics.py`, que se encuentra en este mismo repositorio. Seguidamente se pueden ver los cambios mas significativos introducidos en el fichero `main_vad.c` para conseguir los resultados.
 
 Fichero `main_vad.c`
 
@@ -502,7 +502,7 @@ Fichero `main_vad.c`
 
 ```
 
-Utilizamos las funciones `*sf_write_float()*` y `*sf_seek()*` para poder escribir y movernos por el fichero de salida. También introducimos la variable `*n_maybe*` para controlar los estados intermedios `*ST_MAY_VOICE*` y `*ST_MAY_SILENCE*`. El procedimiento es copiar el segmento de voz en el nuevo fichero y después decidir si se tiene que borrar y introducir zeros o no.
+Utilizamos las funciones `sf_write_float()` y `sf_seek()` para poder escribir y movernos por el fichero de salida. También introducimos la variable `n_maybe` para controlar los estados intermedios *ST_MAY_VOICE* y *ST_MAY_SILENCE*. El procedimiento es copiar el segmento de voz en el nuevo fichero y después decidir si se tiene que borrar y introducir zeros o no.
 
 
 #### Gestión de las opciones del programa usando `docopt_c`
@@ -597,7 +597,7 @@ VAD_DATA *vad_open(float rate, char *_alpha1, char *_alpha2, char *_frame_silenc
 
 ```
 
-Debemos convertir los `*string*` introducidos por pantalla a `*int*` o `*float*`. A parte, también tenemos que comprobar si se han introducido los parámetros por la línea de comandos, ya que esta paso es opcional.
+Debemos convertir los `string` introducidos por pantalla a `int` o `float`. A parte, también tenemos que comprobar si se han introducido los parámetros por la línea de comandos, ya que esta paso es opcional.
 
 
 ### Contribuciones adicionales y/o comentarios acerca de la práctica
@@ -605,15 +605,16 @@ Debemos convertir los `*string*` introducidos por pantalla a `*int*` o `*float*`
 - Indique a continuación si ha realizado algún tipo de aportación suplementaria (algoritmos de detección o 
   parámetros alternativos, etc.).
 
-Hemos generado un script con distintos valores para las variables `alpha1`, `alpha2`,`zeros` `frames_silence` y `frames_voice`, de manera que para cada fichero de audio, itera dichos valores `*x*` veces entre `*y*` valores para encontrar la combinación que resulte en una F-score mayor. Lo hemos comprobado en la base de datos dada para la práctia y el valor más alto obtenido ha sido 93,146% con los siguientes parámetros:
+Hemos generado un script con distintos valores para las variables `alpha1`, `alpha2`,`zeros`, `frames_silence` y `frames_voice`, de manera que para cada fichero de audio, itera dichos valores *x* veces entre *y* valores para encontrar la combinación que resulte en una F-score mayor. Lo hemos comprobado en la base de datos dada para la práctica y el valor más alto obtenido ha sido **93,146%** con los siguientes parámetros:
  + alpha1 = 4
  + alpha2 = 1
  + zeros = 1900
  + frames_silence = 6
  + frames_voice = 8
-Este scipt se llama `run_vad_iteratiu.sh` y se encuentra en la carpeta scrips. Los resultados los guarda en el fichero `resultados.txt`. 
 
-También, hemos decidido añadir el extra de poner a valor `0` los tramos de silencio de las grabaciones de la base de datos. Este proceso lo hace el script `run_vad.sh` que también se encuentra en la carpeta scripts de este repositorio.
+Este scipt se llama `run_vad_iteratiu.sh` y se encuentra en la carpeta scrips de este repositorio. Los resultados los guarda en el fichero `resultados.txt`. 
+
+También hemos decidido añadir el extra de poner a valor `0` los tramos de silencio de las grabaciones de la base de datos. Este proceso lo hace el script `run_vad.sh` que también se encuentra en la carpeta scripts de este repositorio.
 
 - Si lo desea, puede realizar también algún comentario acerca de la realización de la práctica que considere
   de interés de cara a su evaluación.
