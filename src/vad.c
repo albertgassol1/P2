@@ -33,20 +33,10 @@ typedef struct {
   float am;
 } Features;
 
-/* 
- * TODO: Delete and use your own features!
- */
+
 
 Features compute_features(const float *x, int N, float fm) {
-  /*
-   * Input: x[i] : i=0 .... N-1 
-   * Ouput: computed features
-   */
-  /* 
-   * DELETE and include a call to your own functions
-   *
-   * For the moment, compute random value between 0 and 1 
-   */
+
   Features feat;
   feat.p = compute_power(x, N);
   feat.am = compute_am(x, N);
@@ -54,9 +44,7 @@ Features compute_features(const float *x, int N, float fm) {
   return feat;
 }
 
-/* 
- * TODO: Init the values of vad_data
- */
+
 
 VAD_DATA *vad_open(float rate, char *_alpha1, char *_alpha2, char *_frame_silence, char *_frame_voice, char *_zeros) {
 
@@ -76,9 +64,7 @@ VAD_DATA *vad_open(float rate, char *_alpha1, char *_alpha2, char *_frame_silenc
 }
 
 VAD_STATE vad_close(VAD_DATA *vad_data) {
-  /* 
-   * TODO: decide what to do with the last undecided frames
-   */
+
   VAD_STATE state = vad_data->state;
 
   free(vad_data);
@@ -96,13 +82,10 @@ unsigned int vad_frame_size(VAD_DATA *vad_data) {
 
 VAD_STATE vad(VAD_DATA *vad_data, float *x) {
 
-  /* 
-   * TODO: You can change this, using your own features,
-   * program finite state automaton, define conditions, etc.
-   */
+
 
   Features f = compute_features(x, vad_data->frame_length, vad_data->sampling_rate);
-  vad_data->last_feature = f.p; /* save feature, in case you want to show */
+  vad_data->last_feature = f.p;
 
   switch (vad_data->state) {
 
@@ -139,22 +122,6 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
     break;
 
   case ST_MAY_SILENCE:
-      /*
-      if(f.p < k0 + threshold){
-        if(count_silence < 4){
-
-          count_silence += 1;
-        }else{
-          vad_data->state = ST_SILENCE;
-          count_silence = 0;
-        }  
-      
-      }else{
-
-          count_silence = 0;
-          vad_data->state = ST_VOICE;
-      }
-      */
 
       if(f.p > vad_data->k1 || f.zcr > vad_data->zeros){
         
@@ -173,22 +140,6 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
     break;
 
   case ST_MAY_VOICE:
-  /*
-    if(f.p > k0 + threshold){
-        if(count_voice < 4){
-
-          count_voice += 1;
-        }else{
-          vad_data->state = ST_VOICE;
-          count_voice = 0;
-        }  
-      
-      }else{
-
-          count_voice = 0;
-          vad_data->state = ST_SILENCE;
-      }
-      */
 
      if(f.p < vad_data->k2 && f.zcr < vad_data->zeros){
         

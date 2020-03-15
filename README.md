@@ -124,32 +124,52 @@ Hemos etiquetado los tramos de voz y de silencio de manera que, si entre dos pal
 
 	* ¿Es capaz de sacar alguna conclusión a partir de la evolución de la tasa de cruces por cero?
 
-    En las consonantes fricativas, hemos conseguido diferenciar que se trataba de voz y no de silencio a base de evaluar los cruces por cero de dichos sonidos. Hemos podido apreciar que el número de crices por cero es aproximadamente el doble al del estado de silencio inicial. 
+    En las consonantes fricativas, hemos conseguido diferenciar que se trataba de voz y no de silencio a base de evaluar los cruces por cero de dichos sonidos. Hemos podido apreciar que el número de cruces por cero es aproximadamente el doble al del estado de silencio inicial. 
     
-    Cruces por cero letra `s` = 2270
-    Cruces por cero estado inicial = 1024
+    + Cruces por cero letra `s` = 2270
+    + Cruces por cero estado inicial = 1024
 
 ### Desarrollo del detector de actividad vocal
 
 - Complete el código de los ficheros de la práctica para implementar un detector de actividad vocal tan
   exacto como sea posible. Tome como objetivo la maximización de la puntuación-F `TOTAL`.
 
+En esta parte solo introduciremos las partes del código más relevantes, ya que el contenido entero del código se puede encontrar en este mismo repositorio.
+
 Fichero `vad.c`
 
 ```c
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
 
-#include "vad.h"
+float k0;
+int count_silence;
+int count_voice;
 
+typedef enum {ST_UNDEF=0, ST_SILENCE, ST_VOICE, ST_INIT, ST_MAY_SILENCE, ST_MAY_VOICE} VAD_STATE;
+
+typedef struct {
+  VAD_STATE state;
+  float sampling_rate;
+  unsigned int frame_length;
+  float k1;
+  float k2;
+  float zeros;
+  float count_voice;
+  float count_silence;
+  float last_feature; /* for debuggin purposes */
+} VAD_DATA;
+
+```
+
+Fichero `vad.c`
+
+```c
 
 float alpha1 = 3;
 float alpha2 = 1;
 int frames_silence = 3; 
 int frames_voice = 7;
 int n_init;
-const float FRAME_TIME = 10.0F; /* in ms. */
+
 
 /* 
  * As the output state is only ST_VOICE, ST_SILENCE, or ST_UNDEF,
@@ -157,54 +177,14 @@ const float FRAME_TIME = 10.0F; /* in ms. */
  * you want to print the internal state in string format
  */
 
-const char *state_str[] = {
-  "UNDEF", "S", "V", "INIT"
-};
-
-const char *state2str(VAD_STATE st) {
-  return state_str[st];
-}
-
-/* Define a datatype with interesting features */
-typedef struct {
-  float zcr;
-  float p;
-  float am;
-} Features;
-
-/* 
- * TODO: Delete and use your own features!
- */
 
 Features compute_features(const float *x, int N, float fm) {
-  /*
-   * Input: x[i] : i=0 .... N-1 
-   * Ouput: computed features
-   */
-  /* 
-   * DELETE and include a call to your own functions
-   *
-   * For the moment, compute random value between 0 and 1 
-   */
+
   Features feat;
   feat.p = compute_power(x, N);
   feat.am = compute_am(x, N);
   feat.zcr = compute_zcr(x, N, fm);
   return feat;
-}
-
-VAD_STATE vad_close(VAD_DATA *vad_data) {
-  /* 
-   * TODO: decide what to do with the last undecided frames
-   */
-  VAD_STATE state = vad_data->state;
-
-  free(vad_data);
-  return state;
-}
-
-unsigned int vad_frame_size(VAD_DATA *vad_data) {
-  return vad_data->frame_length;
 }
 
 /* 
@@ -214,13 +194,10 @@ unsigned int vad_frame_size(VAD_DATA *vad_data) {
 
 VAD_STATE vad(VAD_DATA *vad_data, float *x) {
 
-  /* 
-   * TODO: You can change this, using your own features,
-   * program finite state automaton, define conditions, etc.
-   */
+
 
   Features f = compute_features(x, vad_data->frame_length, vad_data->sampling_rate);
-  vad_data->last_feature = f.p; /* save feature, in case you want to show */
+  vad_data->last_feature = f.p;
 
   switch (vad_data->state) {
 
@@ -257,20 +234,6 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
     break;
 
   case ST_MAY_SILENCE:
-      /*
-      if(f.p < k0 + threshold){
-        if(count_silence < 4){
-          count_silence += 1;
-        }else{
-          vad_data->state = ST_SILENCE;
-          count_silence = 0;
-        }  
-      
-      }else{
-          count_silence = 0;
-          vad_data->state = ST_VOICE;
-      }
-      */
 
       if(f.p > vad_data->k1 || f.zcr > vad_data->zeros){
         
@@ -289,20 +252,6 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
     break;
 
   case ST_MAY_VOICE:
-  /*
-    if(f.p > k0 + threshold){
-        if(count_voice < 4){
-          count_voice += 1;
-        }else{
-          vad_data->state = ST_VOICE;
-          count_voice = 0;
-        }  
-      
-      }else{
-          count_voice = 0;
-          vad_data->state = ST_SILENCE;
-      }
-      */
 
      if(f.p < vad_data->k2 && f.zcr < vad_data->zeros){
         
@@ -336,17 +285,67 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
     return ST_UNDEF;
 }
 
-void vad_show_state(const VAD_DATA *vad_data, FILE *out) {
-  fprintf(out, "%d\t%f\n", vad_data->state, vad_data->last_feature);
-}
 
 ```
+
+En los ficheros `vad.h` y `vad.c` hemos implementado la máquina de estados incluiendo los estados `*Maybe voice*` y `*Maybe silence*`. También hemos introducido una histéresis para decidir el cambio de los estados ya que nos ayuda a mejorar el sistema. Los parámetros que tenemos en cuenta para decidir si el segmento es de voz o silencio son: potencia, cruces por cero y duración de los segmentos de voz y silencio. Estos parametros los hemos añadido en el struct de `VAD_DATA`. Para calcular la potencia y los cruces por zero de los segmentos de voz, utilizamos las funciones implementadas en `pav_analysis.c`.
 
 Fichero `main_vad.c`
 
 ```c
-codiguito
+
+ if (state != last_state) {
+      if (t != last_t){
+
+        if((last_state == ST_VOICE || last_state == ST_SILENCE) && (state == ST_MAY_SILENCE || state == ST_MAY_VOICE)){
+
+          start_t = t;
+        }else{
+
+          if(last_state == ST_MAY_VOICE && state == ST_VOICE){
+
+            fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, start_t * frame_duration, state2str(ST_SILENCE));
+            last_t = start_t;
+          }
+
+          if (last_state == ST_MAY_SILENCE && state == ST_SILENCE)
+          {
+          
+            fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, start_t * frame_duration, state2str(ST_VOICE));
+            last_t = start_t;
+          }
+
+        }
+          
+      }
+      last_state = state;
+      
+        
+    }
+
+...
+
+  state = vad_close(vad_data);
+  /* TODO: what do you want to print, for last frames? */
+  if (t != last_t)
+    if(state == ST_VOICE){
+      
+      fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, t * frame_duration + n_read / (float) sf_info.samplerate, state2str(state));
+      if (sndfile_out != 0) {
+
+      }
+    }
+    else{
+
+      fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, t * frame_duration + n_read / (float) sf_info.samplerate, state2str(ST_SILENCE));
+      if (sndfile_out != 0) {
+
+      }
+    }
+
 ```
+
+En el fichero `main_vad.c` hemos implementado el etiquetado de los `*labels*`. Para poder hacer el etiquetado, nos ayudamos de las variables `*last_t*` y `*start_t*`. Finalmente, en el último frame decidimos que es de voz solo si el estado actual es `*ST_VOICE*`. Si no, decidimos que es silencio. 
 
 - Inserte una gráfica en la que se vea con claridad la señal temporal, el etiquetado manual y la detección
   automática conseguida para el fichero grabado al efecto. 
@@ -370,7 +369,13 @@ Conideramos que la discrepancia es mínima pero, aún así, a veces falla a la h
   <img width="700" src="img/summary.png">
 </p>
     
-Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
+Consideramos que es un muy buen resultado, sobre todo en las tramas de voz. Para conseguir este resultado hemos utilizado los siguientes parametros:
+
+ + alpha1 = 3
+ + alpha2 = 1
+ + frames_silence = 3
+ + frames_voice = 7
+ + zeros = 1780 
 
 ### Trabajos de ampliación
 
@@ -384,6 +389,121 @@ Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
   <img width="1100" src="img/senyals.png">
 </p>
 
+Para representar mejor las imagenes hemos desarrollado el script `graphics.py` que se encuentra en este mismo repositorio. Seguidamente se pueden ver los cambios mas significativos introducidos en el fichero `main_vad.c` para conseguir los resultados.
+
+Fichero `main_vad.c`
+
+```c
+
+  for (t = last_t = 0; ; t++) { /* For each frame ... */
+    /* End loop when file has finished (or there is an error) */
+    if  ((n_read = sf_read_float(sndfile_in, buffer, frame_size)) != frame_size) break;
+
+    if (sndfile_out != 0) {
+      /* TODO: copy all the samples into sndfile_out */
+      sf_write_float(sndfile_out, buffer, frame_size);
+    }
+
+    state = vad(vad_data, buffer);
+    if(state == ST_MAY_SILENCE || state == ST_MAY_VOICE){
+      n_maybe++;
+    }
+
+    if (verbose & DEBUG_VAD) vad_show_state(vad_data, stdout);
+
+    /* TODO: print only SILENCE and VOICE labels */
+    if (state != last_state) {
+      if (t != last_t){
+
+        if((last_state == ST_VOICE || last_state == ST_SILENCE) && (state == ST_MAY_SILENCE || state == ST_MAY_VOICE)){
+
+          start_t = t;
+        }else{
+
+          if(last_state == ST_MAY_VOICE && state == ST_VOICE){
+
+            fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, start_t * frame_duration, state2str(ST_SILENCE));
+            last_t = start_t;
+          }
+
+          if (last_state == ST_MAY_SILENCE && state == ST_SILENCE)
+          {
+          
+            fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, start_t * frame_duration, state2str(ST_VOICE));
+            last_t = start_t;
+          }
+
+        }
+          
+      }
+      aux_state = last_state;
+      last_state = state;
+      
+        
+    }
+
+    if (sndfile_out != 0) {
+      /* TODO: go back and write zeros in silence segments */
+
+      if(state == ST_SILENCE && aux_state == ST_SILENCE){
+        
+        sf_seek(sndfile_out,-frame_size, SEEK_CUR);
+        sf_write_float(sndfile_out, buffer_zeros, frame_size);
+        
+      }else if (state == ST_UNDEF && aux_state == ST_UNDEF)
+      {
+        sf_seek(sndfile_out,-frame_size, SEEK_CUR);
+        sf_write_float(sndfile_out, buffer_zeros, frame_size);
+
+      }else if (state == ST_SILENCE && aux_state == ST_UNDEF)
+      {
+        sf_seek(sndfile_out,-frame_size, SEEK_CUR);
+        sf_write_float(sndfile_out, buffer_zeros, frame_size);
+
+      }else if (state == ST_SILENCE && aux_state != ST_SILENCE)
+      {
+        sf_seek(sndfile_out, -frame_size*(n_maybe + 1), SEEK_CUR);
+        
+        for(j = 0; j < n_maybe + 1 ; j++){
+
+          sf_write_float(sndfile_out, buffer_zeros, frame_size);
+        }
+
+        n_maybe = 0;
+      }else if (state == ST_VOICE && aux_state != ST_SILENCE){
+        
+        n_maybe = 0;
+      }
+      
+    }
+    
+
+  }
+
+  state = vad_close(vad_data);
+  /* TODO: what do you want to print, for last frames? */
+  if (t != last_t)
+    if(state == ST_VOICE){
+      
+      fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, t * frame_duration + n_read / (float) sf_info.samplerate, state2str(state));
+      if (sndfile_out != 0) {
+
+        sf_write_float(sndfile_out, buffer, n_read);
+      }
+    }
+    else{
+
+      fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, t * frame_duration + n_read / (float) sf_info.samplerate, state2str(ST_SILENCE));
+      if (sndfile_out != 0) {
+
+        sf_write_float(sndfile_out, buffer_zeros, n_read);
+      }
+    }
+
+```
+
+Utilizamos las funciones `*sf_write_float()*` y `*sf_seek()*` para poder escribir y movernos por el fichero de salida. También introducimos la variable `*n_maybe*` para controlar los estados intermedios `*ST_MAY_VOICE*` y `*ST_MAY_SILENCE*`. El procedimiento es copiar el segmento de voz en el nuevo fichero y después decidir si se tiene que borrar y introducir zeros o no.
+
 
 #### Gestión de las opciones del programa usando `docopt_c`
 
@@ -394,16 +514,106 @@ Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
   <img width="900" height="300" src="img/help.png">
 </p>
 
+Como podemos ver, se pueden introducir por terminal los parámetros que se ven en la imagen. A parte de modificar el fichero `vad.docopt`, también hemos tenido que modificar los ficheros `main_vad.c` y `vad.c`. A continuación se muestran los cambios más importantes en estos ficheros.
+
+Fichero `main_vad.c`
+
+```c
+
+DocoptArgs args = docopt(argc, argv, /* help */ 1, /* version */ "2.0");
+
+verbose    = args.verbose ? DEBUG_VAD : 0;
+input_wav  = args.input_wav;
+output_vad = args.output_vad;
+output_wav = args.output_wav;
+
+// Check if arguments aren't NULLS
+if(args.alpha1){
+
+alpha1 = args.alpha1;
+}else{
+
+alpha1 = "3";
+}
+
+if(args.alpha2){
+
+alpha2 = args.alpha2;
+}else{
+
+alpha2 = "1";
+}
+
+if(args.frame_silence){
+
+frame_silence = args.frame_silence;
+}else{
+
+frame_silence = "3";
+}
+
+if(args.frame_voice){
+
+frame_voice = args.frame_voice;
+}else{
+
+frame_voice = "7";
+}
+
+if(args.zeros){
+
+zeros = args.zeros;
+}else{
+
+zeros = "1780";
+}
+
+...
+
+vad_data = vad_open(sf_info.samplerate, alpha1, alpha2, frame_silence, frame_voice, zeros);
+
+```
+
+Fichero `vad.c`
+
+```c
+
+VAD_DATA *vad_open(float rate, char *_alpha1, char *_alpha2, char *_frame_silence, char *_frame_voice, char *_zeros) {
+
+  VAD_DATA *vad_data = malloc(sizeof(VAD_DATA));
+  vad_data->state = ST_INIT;
+  vad_data->sampling_rate = rate;
+  vad_data->frame_length = rate * FRAME_TIME * 1e-3;
+  vad_data->count_silence = 0;
+  vad_data->count_voice = 0;
+  n_init = 0;
+  alpha1 = (float) strtod(_alpha1,NULL);
+  alpha2 = (float) strtod(_alpha2,NULL);
+  frames_silence =  atoi(_frame_silence);
+  frames_voice =  atoi(_frame_voice);
+  vad_data->zeros = (float) strtod(_zeros,NULL);
+  return vad_data;
+}
+
+```
+
+Debemos convertir los `*string*` introducidos por pantalla a `*int*` o `*float*`. A parte, también tenemos que comprobar si se han introducido los parámetros por la línea de comandos, ya que esta paso es opcional.
+
+
 ### Contribuciones adicionales y/o comentarios acerca de la práctica
 
 - Indique a continuación si ha realizado algún tipo de aportación suplementaria (algoritmos de detección o 
   parámetros alternativos, etc.).
 
-Hemos generado un script con distintos valores para las variables `alpha1`, `alpha2`,`zeros` `frames_silence` y `frames_voice`, de manera que para cada fichero de audio, itera dichos valores x veces entre x valores para encontrar la combinación que resulte en una F-score mayor. Lo hemos comprobado en la base de datos dada para la práctia y el valor msálto obtenido ha sido 93,146.
+Hemos generado un script con distintos valores para las variables `alpha1`, `alpha2`,`zeros` `frames_silence` y `frames_voice`, de manera que para cada fichero de audio, itera dichos valores `*x*` veces entre `*y*` valores para encontrar la combinación que resulte en una F-score mayor. Lo hemos comprobado en la base de datos dada para la práctia y el valor más alto obtenido ha sido 93,146% con los siguientes parámetros:
+ + alpha1 = 4
+ + alpha2 = 1
+ + zeros = 1900
+ + frames_silence = 6
+ + frames_voice = 8
+Este scipt se llama `run_vad_iteratiu.sh` y se encuentra en la carpeta scrips. Los resultados los guarda en el fichero `resultados.txt`. 
 
-También, hemos decidido añadir el extra de poner a valor `0` los tramos de silencio de las grabaciones de la base de datos. 
-
-De ambas aportaciones suplementarias se ha subido el código a GitHub.
+También, hemos decidido añadir el extra de poner a valor `0` los tramos de silencio de las grabaciones de la base de datos. Este proceso lo hace el script `run_vad.sh` que también se encuentra en la carpeta scripts de este repositorio.
 
 - Si lo desea, puede realizar también algún comentario acerca de la realización de la práctica que considere
   de interés de cara a su evaluación.

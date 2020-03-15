@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     alpha1 = args.alpha1;
   }else{
 
-    alpha1 = "3";
+    alpha1 = "4";
   }
 
   if(args.alpha2){
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     frame_silence = args.frame_silence;
   }else{
 
-    frame_silence = "3";
+    frame_silence = "6";
   }
   
   if(args.frame_voice){
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     frame_voice = args.frame_voice;
   }else{
 
-    frame_voice = "7";
+    frame_voice = "8";
   }
 
   if(args.zeros){
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     zeros = args.zeros;
   }else{
 
-    zeros = "1780";
+    zeros = "1900";
   }
 
   if (input_wav == 0 || output_vad == 0) {
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
     if (verbose & DEBUG_VAD) vad_show_state(vad_data, stdout);
 
     /* TODO: print only SILENCE and VOICE labels */
-    /* As it is, it prints UNDEF segments but is should be merge to the proper value */
+
     if (state != last_state) {
       if (t != last_t){
 

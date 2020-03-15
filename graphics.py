@@ -17,7 +17,7 @@ if spf.getnchannels() == 2:
     print("Just mono files")
     sys.exit(0)
 
-axs[0].plot(signal, 'tab:green')
+axs[0].plot(signal, 'tab:red')
 
 spf2 = wave.open("pav_2341_silence.wav", "r")
 # Extract Raw Audio from Wav File
@@ -28,6 +28,6 @@ if spf2.getnchannels() == 2:
     sys.exit(0)
 
 
-axs[1].plot(signal2, 'tab:pink')
+axs[1].plot(signal2, 'tab:blue')
 
 plt.show()
