@@ -3,7 +3,7 @@ PAV - P2: detección de actividad vocal (VAD)
 
 # Andrea Iturralde - Albert Gassol
 
-<img src="img/unnamed.jpg" width = "600" align="center">
+<img src="img/unnamed.jpg" width = "200" align="center">
 
 Esta práctica se distribuye a través del repositorio GitHub [Práctica 2](https://github.com/albino-pav/P2),
 y una parte de su gestión se realizará mediante esta web de trabajo colaborativo.  Al contrario que Git,
@@ -367,7 +367,7 @@ Conideramos que la discrepancia es mínima pero, aún así, a veces falla a la h
   el resumen).
 
 <p align="center">
-  <img width="900" height="200" src="img/summary.png">
+  <img width="700" src="img/summary.png">
 </p>
     
 Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
@@ -390,7 +390,7 @@ Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
   una captura de pantalla en la que se vea el mensaje de ayuda del programa.
 
 <p align="center">
-  <img width="900" height="200" src="img/help.png">
+  <img width="900" height="300" src="img/help.png">
 </p>
 
 ### Contribuciones adicionales y/o comentarios acerca de la práctica
