@@ -381,11 +381,9 @@ Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
   mejor opción para esto, ya que no es capaz de visualizar varias señales al mismo tiempo).
 
 <p align="center">
-  <img width="900" height="200" src="img/audionormal.png">
+  <img width="900" src="img/senyals.png">
 </p>
-<p align="center">
-  <img width="900" height="200" src="img/audiosilenci.png">
-</p>
+
 
 #### Gestión de las opciones del programa usando `docopt_c`
 
