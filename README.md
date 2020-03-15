@@ -3,7 +3,7 @@ PAV - P2: detección de actividad vocal (VAD)
 
 # Andrea Iturralde - Albert Gassol
 
-<img src="img/unnamed.png" align="center">
+<img src="img/unnamed.png" width = "600" align="center">
 
 Esta práctica se distribuye a través del repositorio GitHub [Práctica 2](https://github.com/albino-pav/P2),
 y una parte de su gestión se realizará mediante esta web de trabajo colaborativo.  Al contrario que Git,
@@ -351,8 +351,12 @@ codiguito
 - Inserte una gráfica en la que se vea con claridad la señal temporal, el etiquetado manual y la detección
   automática conseguida para el fichero grabado al efecto. 
 
-<img src="img/vadilab.png" width="640" align="center">
-<img src="img/diferencia.png" width="640" align="center">
+<p align="center">
+  <img width="900" height="200" src="img/vadilab.png">
+</p>
+<p align="center">
+  <img width="900" height="200" src="img/diferencia.png">
+</p>
 
 - Explique, si existen, las discrepancias entre el etiquetado manual y la detección automática.
 
@@ -362,7 +366,9 @@ Conideramos que la discrepancia es mínima pero, aún así, a veces falla a la h
   continuación las tasas de sensibilidad (*recall*) y precisión para el conjunto de la base de datos (sólo
   el resumen).
 
-<img src="img/summary.png" width="640" align="center">
+<p align="center">
+  <img width="900" height="200" src="img/summary.png">
+</p>
     
 Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
 
@@ -374,14 +380,18 @@ Consideramos que es un muy buen resultado, sobre todo en las tramas de voz.
   la que se vea con claridad la señal antes y después de la cancelación (puede que `wavesurfer` no sea la
   mejor opción para esto, ya que no es capaz de visualizar varias señales al mismo tiempo).
 
-<img src="img/ceros.png" width="640" align="center">
+<p align="center">
+  <img width="900" height="200" src="img/ceros.png">
+</p>
 
 #### Gestión de las opciones del programa usando `docopt_c`
 
 - Si ha usado `docopt_c` para realizar la gestión de las opciones y argumentos del programa `vad`, inserte
   una captura de pantalla en la que se vea el mensaje de ayuda del programa.
 
-<img src="img/help.png" width="640" align="center">
+<p align="center">
+  <img width="900" height="200" src="img/help.png">
+</p>
 
 ### Contribuciones adicionales y/o comentarios acerca de la práctica
 
